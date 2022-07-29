@@ -68,7 +68,7 @@ animate();
 function addFloor() {
   const geometry = new THREE.PlaneBufferGeometry(10, 10)
   geometry.rotateX(-Math.PI / 2)
-  const material = new THREE.MeshStandardMaterial({ color: 0xffff00, roughness: 0, metalness: 0 })
+  const material = new THREE.MeshStandardMaterial({ color: 0x70cf89, roughness: 0, metalness: 0 })
   const plane = new THREE.Mesh(geometry, material)
   scene.add(plane)
 }
