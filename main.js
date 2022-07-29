@@ -29,6 +29,7 @@ composer.addPass(ssrPass)
 const geometry = new THREE.BoxGeometry(1, 1, 1);
 const material = new THREE.MeshStandardMaterial({ color: 0xff00ff });
 const cube = new THREE.Mesh(geometry, material);
+cube.position.y = 1
 scene.add(cube);
 
 const point = new THREE.PointLight()
