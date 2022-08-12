@@ -1,11 +1,7 @@
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 import { TransformControls } from "three/examples/jsm/controls/TransformControls"
 import { GUI } from "lil-gui"
-import {
-  EffectComposer,
-  EffectPass,
-  RenderPass,
-} from "postprocessing"
+import { EffectComposer, EffectPass, RenderPass } from "postprocessing"
 import { SSREffect } from "screen-space-reflections"
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader"
 import {
@@ -30,6 +26,33 @@ const params = {
   selectionFloor: false,
   selectionObjects: false,
   useHDRI: false,
+}
+
+const SSR_PARAMS = {
+  intensity: 1,
+  exponent: 1,
+  distance: 10,
+  fade: 0,
+  roughnessFade: 1,
+  thickness: 10,
+  ior: 1.45,
+  maxRoughness: 1,
+  maxDepthDifference: 10,
+  blend: 0.9,
+  correction: 1,
+  correctionRadius: 1,
+  blur: 0.5,
+  blurKernel: 1,
+  blurSharpness: 10,
+  jitter: 0,
+  jitterRoughness: 0,
+  steps: 20,
+  refineSteps: 5,
+  missedRays: true,
+  useNormalMap: true,
+  useRoughnessMap: true,
+  resolutionScale: 1,
+  velocityResolutionScale: 1,
 }
 
 const hdriLoader = new RGBELoader()
@@ -57,8 +80,7 @@ const point = new PointLight()
 point.position.set(1, 2, 1)
 scene.add(point)
 
-
-// COMPOSER 
+// COMPOSER
 const composer = new EffectComposer(renderer)
 composer.addPass(new RenderPass(scene, camera))
 // SSR
@@ -68,11 +90,10 @@ composer.addPass(ssrPass)
 
 // Transform con
 const transformcontrols = new TransformControls(camera, renderer.domElement)
+transformcontrols.enabled = false
 transformcontrols.addEventListener("dragging-changed", (event) => {
   controls.enabled = !event.value
 })
-
-
 
 function animate() {
   requestAnimationFrame(animate)
@@ -117,17 +138,19 @@ function addFloor() {
   floor = plane
 }
 function addGui() {
-  const gui = new GUI({ title: 'SSR 2.5.0' })
+  const gui = new GUI({ title: "SSR 2.5.0" })
 
-  gui.add(params, "useComposer").name('Composer + SSR')
+  gui.add(params, "useComposer").name("Composer + SSR")
   gui.add(params, "useHDRI").onChange((v) => {
     useHDRI(v)
   })
   gui.add(params, "addTransformControls").onChange((v) => {
     if (v) {
       scene.add(transformcontrols)
+      transformcontrols.enabled = true
     } else {
       scene.remove(transformcontrols)
+      transformcontrols.enabled = false
     }
   })
 
@@ -150,7 +173,119 @@ function addGui() {
 
   scene.environment = hdri
   scene.background = hdri
+
+  addSSRGui(gui)
 }
+
+function addSSRGui(gui) {
+  const params = SSR_PARAMS
+  const f = gui.addFolder("SSR")
+  f.close()
+
+  const generalFolder = f.addFolder("General")
+  generalFolder.close()
+
+  generalFolder.add(params, "intensity", 0, 3, 0.01).onChange((v) => {
+    ssrEffect["intensity"] = v
+  })
+  generalFolder.add(params, "exponent", 0.125, 8, 0.125).onChange((v) => {
+    ssrEffect["exponent"] = v
+  })
+  generalFolder.add(params, "distance", 0.001, 10, 0.1).onChange((v) => {
+    ssrEffect["distance"] = v
+  })
+  generalFolder.add(params, "fade", 0, 20, 0.01).onChange((v) => {
+    ssrEffect["fade"] = v
+  })
+  generalFolder.add(params, "roughnessFade", 0, 1, 0.01).onChange((v) => {
+    ssrEffect["roughnessFade"] = v
+  })
+
+  generalFolder.add(params, "thickness", 0, 10).onChange((v) => {
+    ssrEffect["thickness"] = v
+  })
+  generalFolder.add(params, "ior", 1, 2.33333).onChange((v) => {
+    ssrEffect["ior"] = v
+  })
+
+
+
+  const maximumValuesFolder = f.addFolder("Maximum Values")
+  maximumValuesFolder.close()
+
+  maximumValuesFolder.add(params, "maxRoughness", 0, 1, 0.01).onChange((v) => {
+    ssrEffect["maxRoughness"] = v
+  })
+  maximumValuesFolder
+    .add(params, "maxDepthDifference", 0, 100, 0.1)
+    .onChange((v) => {
+      ssrEffect["maxDepthDifference"] = v
+    })
+
+  const temporalResolveFolder = f.addFolder("Temporal Resolve")
+  temporalResolveFolder.close()
+  temporalResolveFolder.add(params, "blend", 0, 1, 0.001).onChange((v) => {
+    ssrEffect["blend"] = v
+  })
+  temporalResolveFolder.add(params, "correction", 0, 1, 0.0001).onChange((v) => {
+    ssrEffect["correction"] = v
+  })
+  temporalResolveFolder.add(params, "correctionRadius", 1, 4, 1).onChange((v) => {
+    ssrEffect["correctionRadius"] = v
+  })
+
+  const blurFolder = f.addFolder("Blur")
+  blurFolder.close()
+  blurFolder.add(params, "blur", 0, 1, 0.01).onChange((v) => {
+    ssrEffect["blur"] = v
+  })
+  blurFolder.add(params, "blurKernel", 0, 5, 1).onChange((v) => {
+    ssrEffect["blurKernel"] = v
+  })
+  blurFolder.add(params, "blurSharpness", 0, 100, 1).onChange((v) => {
+    ssrEffect["blurSharpness"] = v
+  })
+
+  const jitterFolder = f.addFolder("Jitter")
+  jitterFolder.close()
+  jitterFolder.add(params, "jitter", 0, 4, 0.01).onChange((v) => {
+    ssrEffect["jitter"] = v
+  })
+  jitterFolder.add(params, "jitterRoughness", 0, 4, 0.01).onChange((v) => {
+    ssrEffect["jitterRoughness"] = v
+  })
+
+  const definesFolder = f.addFolder("Tracing")
+  definesFolder.close()
+  definesFolder.add(params, "steps", 1, 256, 1).onChange((v) => {
+    ssrEffect["steps"] = v
+  })
+  definesFolder.add(params, "refineSteps", 0, 16, 1).onChange((v) => {
+    ssrEffect["refineSteps"] = v
+  })
+  definesFolder.add(params, "missedRays").onChange((v) => {
+    ssrEffect["missedRays"] = v
+  })
+
+  const resolutionFolder = f.addFolder("Resolution")
+  resolutionFolder.close()
+  resolutionFolder.add(params, "resolutionScale", 0.125, 1, 0.125).onChange((v) => {
+    ssrEffect["resolutionScale"] = v
+  })
+  resolutionFolder.add(params, "velocityResolutionScale", 0.125, 1, 0.125).onChange((v) => {
+    ssrEffect["velocityResolutionScale"] = v
+  })
+
+
+
+
+
+
+
+
+
+}
+
 async function useHDRI(state) {
   if (!hdri) {
     hdri = await hdriLoader.loadAsync(
