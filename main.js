@@ -117,9 +117,9 @@ function addFloor() {
   floor = plane
 }
 function addGui() {
-  const gui = new GUI()
+  const gui = new GUI({ title: 'SSR 2.5.0' })
 
-  gui.add(params, "useComposer")
+  gui.add(params, "useComposer").name('Composer + SSR')
   gui.add(params, "useHDRI").onChange((v) => {
     useHDRI(v)
   })

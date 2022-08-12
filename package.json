@@ -8,12 +8,12 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "vite": "^3.0.4"
+    "vite": "^3.0.6"
   },
   "dependencies": {
     "lil-gui": "^0.17.0",
-    "postprocessing": "^6.28.4",
-    "screen-space-reflections": "^2.1.0",
+    "postprocessing": "^6.28.5",
+    "screen-space-reflections": "^2.5.0",
     "three": "^0.143.0"
   }
 }
