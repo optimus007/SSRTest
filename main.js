@@ -277,13 +277,6 @@ function addSSRGui(gui) {
   })
 
 
-
-
-
-
-
-
-
 }
 
 async function useHDRI(state) {
